@@ -71,6 +71,52 @@ void passByReference(intBuffer* myBuffer_ptr) {
   assert(*fourth_ptr == 44);
 }
 
+void testPeek(void) {
+  intBuffer peekBuffer;
+  bufferInit(peekBuffer,16,int);
+
+  for (int i = 0; i < 16; i++) {
+    /* Add 100 so the value is different from its index */
+    int valueToWrite = i + 100;
+    bufferWrite(&peekBuffer,valueToWrite);
+  }
+
+  int testValue;
+  bufferPeekBack(&peekBuffer, 0, testValue);
+  assert(testValue == 115);
+
+  bufferPeekBack(&peekBuffer, 1, testValue);
+  assert(testValue == 114);
+
+  bufferPeekBack(&peekBuffer, 5, testValue);
+  assert(testValue == 110);
+
+  bufferPeekForward(&peekBuffer, 0, testValue);
+  assert(testValue == 100);
+
+  bufferPeekForward(&peekBuffer, 1, testValue);
+  assert(testValue == 101);
+
+  bufferPeekForward(&peekBuffer, 5, testValue);
+  assert(testValue == 105);
+}
+
+void testReset(void) {
+  intBuffer resetBuffer;
+  bufferInit(resetBuffer,16,int);
+
+  for (int i = 0; i < 16; i++) {
+    int valueToWrite = i + 100;
+    bufferWrite(&resetBuffer,valueToWrite);
+  }
+
+  assert(bufferFreeSpace(&resetBuffer) == 0);
+
+  bufferReset(&resetBuffer);
+
+  assert(bufferFreeSpace(&resetBuffer) == 16);
+}
+
 int main() {
   // Declare vars.
   intBuffer myBuffer;
@@ -79,11 +125,15 @@ int main() {
 
 
   assert(isBufferEmpty(&myBuffer));
+  assert(bufferUsedSpace(&myBuffer) == 0);
+  assert(bufferFreeSpace(&myBuffer) == 2);
 
   bufferWrite(&myBuffer,37);
   bufferWrite(&myBuffer,72);
 
   assert(!isBufferEmpty(&myBuffer));
+  assert(bufferUsedSpace(&myBuffer) == 2);
+  assert(bufferFreeSpace(&myBuffer) == 0);
 
   int first;
   bufferRead(&myBuffer,first);
@@ -94,6 +144,8 @@ int main() {
   assert(second == 72);
 
   passByReference(&myBuffer);
+  testPeek();
+  testReset();
 
   printf("All tests passed.\n");
   return 0;

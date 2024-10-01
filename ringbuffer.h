@@ -110,6 +110,24 @@
     BUF.size = S; \
     BUF.start = 0; \
     BUF.end = 0;
+
+/* This has only been tested with GCC */
+#if defined(__GNUC__)
+
+/* In cases where the developer needs to explicitly arrange memory in linker
+ * scripts, this macro allows to specify the linker section the buffer will
+ * be allocated in. */
+#define bufferInitWithSection(SECTION, BUF, S, T) \
+    { \
+        __attribute__((section(SECTION))) static T StaticBufMemory[S + 1]; \
+        BUF.elems = StaticBufMemory; \
+    } \
+    BUF.size = S; \
+    BUF.start = 0; \
+    BUF.end = 0;
+
+#endif
+
 #else
   
 #define bufferInit(BUF, S, T) \
@@ -135,8 +153,19 @@
   
 #endif
 
+#define nextIndex(BUF, IX)     ({ ((IX != ((BUF)->size - 1)) ? (IX + 1) : 0); });
+#define previousIndex(BUF, IX) ({ ((IX != 0) ? (IX - 1) : ((BUF)->size)); });
+
 #define isBufferEmpty(BUF) ((BUF)->end == (BUF)->start)
 #define isBufferFull(BUF) (nextEndIndex(BUF) == (BUF)->start)
+
+#define bufferUsedSpace(BUF) \
+    (isBufferEmpty(BUF) ? 0 \
+     : ((BUF)->start < (BUF)->end) \
+         ? (((BUF)->end - (BUF)->start)) \
+         : ((BUF)->size - ((BUF)->start - (BUF)->end - 1)))
+
+#define bufferFreeSpace(BUF) ((BUF)->size - (bufferUsedSpace(BUF)))
 
 #define bufferWritePeek(BUF) (BUF)->elems[(BUF)->end]
 #define bufferWriteSkip(BUF) \
@@ -149,6 +178,28 @@
 #define bufferReadSkip(BUF) \
   (BUF)->start = nextStartIndex(BUF);
 
+/* Variable names are weird here to avoid variable shadowing.
+ * I don't think this is the best way to handle this issue,
+ * but if you actually want to use "asdfghhgfsa" as a 
+ * variable name, you've got bigger problems. */
+#define bufferPeekBack(BUF, STEPS, ELEM) \
+    ({ \
+        int asdfghhgfsa = previousIndex(BUF, (BUF)->end); \
+        for (int qpwoeiieowpq = 0; qpwoeiieowpq < STEPS; qpwoeiieowpq++) { \
+            asdfghhgfsa = previousIndex(BUF, asdfghhgfsa); \
+        } \
+        ELEM = (BUF)->elems[asdfghhgfsa]; \
+    });
+
+#define bufferPeekForward(BUF, STEPS, ELEM) \
+    ({ \
+        int asdfghhgfsa = (BUF)->start; \
+        for (int qpwoeiieowpq = 0; qpwoeiieowpq < STEPS; qpwoeiieowpq++) { \
+            asdfghhgfsa = nextIndex(BUF, asdfghhgfsa);\
+        } \
+        ELEM = (BUF)->elems[asdfghhgfsa];\
+    });
+
 #define bufferWrite(BUF, ELEM) \
   bufferWritePeek(BUF) = ELEM; \
   bufferWriteSkip(BUF)
@@ -156,5 +207,11 @@
 #define bufferRead(BUF, ELEM) \
   ELEM = bufferReadPeek(BUF); \
   bufferReadSkip(BUF)
+
+#define bufferReset(BUF) \
+    ({ \
+        (BUF)->start = 0; \
+        (BUF)->end = 0; \
+    });
   
 #endif

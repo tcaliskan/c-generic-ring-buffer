@@ -46,6 +46,12 @@ int main() {
   bufferWrite(myBuffer_ptr,37);
   bufferWrite(myBuffer_ptr,72);
 
+  // Check how much space is used
+  int used_space = bufferUsedSpace(myBuffer_ptr);
+
+  // Check how much space is available
+  int free_space = bufferFreeSpace(myBuffer_ptr);
+
   // Read a value into a local variable.
   int first;
   bufferRead(myBuffer_ptr,first);
@@ -58,6 +64,15 @@ int main() {
  
   // move to next value
   bufferReadSkip(myBuffer_ptr);
+
+  // Reset to the state after initialization
+  bufferReset(myBuffer_ptr);
+
+  // Peek the last 32 values written to the buffer
+  for (int i = 0; i < 32; i++) {
+    int value;
+    bufferPeekBack(myBuffer_ptr, i, value);
+  }
 
   return 0;
 }
