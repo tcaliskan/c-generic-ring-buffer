@@ -200,13 +200,13 @@
         ELEM = (BUF)->elems[asdfghhgfsa];\
     });
 
-#define bufferWrite(BUF, ELEM) \
-  bufferWritePeek(BUF) = ELEM; \
-  bufferWriteSkip(BUF)
+#define bufferWrite(BUF, ELEM) do { \
+  bufferWritePeek(BUF) = ELEM;      \
+  bufferWriteSkip(BUF); } while(0)
 
-#define bufferRead(BUF, ELEM) \
-  ELEM = bufferReadPeek(BUF); \
-  bufferReadSkip(BUF)
+#define bufferRead(BUF, ELEM) do {  \
+  ELEM = bufferReadPeek(BUF);       \
+  bufferReadSkip(BUF); } while(0)
 
 #define bufferReset(BUF) \
     ({ \
